@@ -1,0 +1,621 @@
+onclick="confirmDelete()" for area,table ,pile
+file config;
+render;
+from the temp;
+where the page display;
+for mobile view and for laptop view;
+set max widht to 600px;
+then test in mobile and lap[tops ;
+api calls and render;
+route the pages;
+
+ngrok http http://localhost:5000   ---- run ngrok.exe
+
+C:\Users\LENOVO>python --version
+Python 3.10.9
+
+C:\Users\LENOVO>mysql --version
+mysql  Ver 8.0.41 for Win64 on x86_64 (MySQL Community Server - GPL)
+
+C:\Users\LENOVO>vscode --version
+'vscode' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\LENOVO>pip --version
+pip 25.0.1 from C:\Users\LENOVO\AppData\Local\Programs\Python\Python310\lib\site-packages\pip (python 3.10)
+
+C:\Users\LENOVO>flask --version
+Python 3.10.9
+Flask 3.1.0
+Werkzeug 3.1.3
+
+C:\Users\LENOVO>
+
+to run the application fast..... python -m waitress --listen=0.0.0.0:5000 app:app
+to get the public ip address.... https://whatismyipaddress.com/
+
+save and download assts:#################################################
+
+<button  type="button" class="savebtn" >save&download</button>
+
+document.querySelector('.savebtn').addEventListener('click', function () {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF();
+
+    // Get selected values
+    let userSelect = document.getElementById("user_id");
+    let userName = userSelect.options[userSelect.selectedIndex].text.trim();
+    let taskDate = document.getElementById("task_date").value;
+
+    if (!userName || !taskDate) {
+        alert("Please select a user and task date.");
+        return;
+    }
+
+    // Get other form values
+    let allottedBy = document.getElementById("allotted_by").value;
+    let allottedDate = document.getElementById("allotted_date").value;
+    let dateCompleted = document.getElementById("date_completed").value || "Not Completed";
+    let selectedHotspots = document.getElementById("selectedHotspots").value || "None";
+
+    let pdfName = `${userName}_TaskDate_${taskDate}.pdf`;
+ 
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("Task Assessment", 65, 20);
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "italic");
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 30);
+    
+    doc.setLineWidth(0.5);
+    doc.line(15, 35, 195, 35);
+
+    let tableData = [
+        ["User", userName],
+        ["Task Date", taskDate],
+        ["Allotted By", allottedBy],
+        ["Allotted Date", allottedDate],
+        ["Date Completed", dateCompleted],
+        ["Allotted Tables", selectedHotspots]
+    ];
+
+    // Add Table
+    doc.autoTable({
+        startY: 45,
+        head: [["Field", "Value"]],
+        body: tableData,
+        theme: "striped",
+        styles: { fontSize: 11, cellPadding: 4 },
+        headStyles: { fillColor: [41, 128, 185], textColor: [255, 255, 255] },
+        alternateRowStyles: { fillColor: [240, 240, 240] },
+        margin: { top: 40 }
+    });
+
+    // Save PDF
+    doc.save(pdfName); 
+});
+
+
+
+###############################################################
+@app.route('/submit_user_form', methods=['POST'])
+def submit_userform():
+    # Retrieve form data
+    user_name = request.form.get('user_name')
+    user_type = request.form.get('user_type')
+    designation = request.form.get('designation')
+    phone_no = request.form.get('phone_no')
+    reports_to = request.form.get('reports_to')
+    date_created = request.form.get('date_created')
+    site_id = request.form.get('site_id')  
+    email = request.form.get('gmail_address') 
+    password = request.form.get('create_password')
+    confirm_password = request.form.get('confirm_password') 
+
+    if password != confirm_password:
+        return jsonify({"success": False, "message": "Passwords do not match!"})
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    try:
+        # Check if the Site ID exists
+        cursor.execute("SELECT  `Site ID` FROM `site` WHERE `Site ID` = %s", (site_id,))
+        if not cursor.fetchone():
+            return jsonify({"success": False, "message": "Invalid Site ID selected."})
+
+        cursor.execute("SELECT `Email` FROM `users` WHERE `Email` = %s", (email,))
+        if cursor.fetchone():
+            return jsonify({"success": False, "message": "Email already exists. Please use a different email."})
+
+        cursor.execute("SELECT `User ID` FROM `users` ORDER BY `User ID` DESC LIMIT 1")
+        result = cursor.fetchone()
+        if result and result[0]:
+            last_user_id = result[0]
+            next_number = int(last_user_id[1:]) + 1
+        else:
+            next_number = 1
+
+        new_user_id = f"U{next_number:03d}" 
+
+        query = """
+        INSERT INTO `users` (`User ID`, `Site ID`, `User Name`, `User Type`, `User Designation`, `User Phone number`, `Reports To`, `Date Created`, `Date Removed`, `Email`, `Password`)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (new_user_id, site_id, user_name, user_type, designation, phone_no, reports_to, date_created, None, email, password))
+        connection.commit()
+
+        return jsonify({"success": True, "message": f"User information saved successfully "})
+    except mysql.connector.Error as e:
+        return jsonify({"success": False, "message": f"Error saving user information: {e}"})
+    finally:
+        cursor.close()
+        connection.close()
+
+fetch("/get_row_ids")
+.then(response => response.json())
+.then(data => {
+    const rowSelect = document.getElementById("row_id"); // Ensure the dropdown has this ID in your HTML
+    data.rows.forEach(row => {
+        const option = document.createElement("option");
+        option.value = row.id; // Use Row ID as the value
+        option.textContent = row.name; // Display Row Name
+        rowSelect.appendChild(option);
+    });
+})
+.catch(error => console.error("Error fetching rows:", error));
+
+fetch("/get_table_ids")
+.then(response => response.json())
+.then(data => {
+    const tableSelect = document.getElementById("table_id"); // Ensure the dropdown has this ID in your HTML
+    data.tables.forEach(table => {
+        const option = document.createElement("option");
+        option.value = table.id; // Use Table ID as the value
+        option.textContent = table.location; // Display Location
+        tableSelect.appendChild(option);
+    });
+})
+.catch(error => console.error("Error fetching tables:", error));
+
+
+
+
+{% if user_type == 'Admin' %}
+<!-- Create Button visible only to Admin -->
+<button class="create-btn" style="color: blue;" onclick="window.location.href='/assessment'" title="Create">
+  <i class="fas fa-plus"></i>
+</button>
+{% endif %}
+<button class="update-btn" onclick="window.location.href='/updateassmnt'" title="Update">
+<i class="fas fa-edit"></i>
+</button>
+
+
+
+<script>
+
+    /*function previewImage(event, previewId, imageId, uploadButtonId) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+    
+            reader.onload = function (e) {
+                // Set the source of the image to the selected file
+                document.getElementById(imageId).src = e.target.result;
+            }
+    
+            reader.readAsDataURL(file);
+    
+            // Hide the upload button after the image is uploaded
+            document.getElementById(uploadButtonId).style.display = 'none';
+        }
+    }*/
+    function previewImage(event, previewId, imageId, uploadButtonId) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            let imageElement = document.getElementById(imageId);
+            imageElement.src = e.target.result;
+            imageElement.style.display = "block"; // Ensure image is visible
+        };
+
+        reader.readAsDataURL(file);
+
+        // Hide the upload button after selecting an image
+        document.getElementById(uploadButtonId).style.display = 'none';
+    }
+}
+
+    
+    
+    // Function to handle "Retake" button logic
+    /*function retakePictures() {
+       
+        if (document.getElementById('checkbox1').checked) {
+           
+            document.getElementById('upload1').value = ""; 
+            document.getElementById('image1').src = "";
+            document.getElementById('uploadButton1').style.display = 'inline-block'; 
+        }
+    
+        if (document.getElementById('checkbox2').checked) {
+            // Show the upload button again and reset the image
+            document.getElementById('upload2').value = ""; // Clear the file input
+            document.getElementById('image2').src = ""; // Reset the image (empty state)
+            document.getElementById('uploadButton2').style.display = 'inline-block'; // Show the upload button
+        }
+    
+        if (document.getElementById('checkbox3').checked) {
+            // Show the upload button again and reset the image
+            document.getElementById('upload3').value = ""; // Clear the file input
+            document.getElementById('image3').src = ""; // Reset the image (empty state)
+            document.getElementById('uploadButton3').style.display = 'inline-block'; // Show the upload button
+        }
+    
+        if (document.getElementById('checkbox4').checked) {
+            // Show the upload button again and reset the image
+            document.getElementById('upload4').value = ""; // Clear the file input
+            document.getElementById('image4').src = ""; // Reset the image (empty state)
+            document.getElementById('uploadButton4').style.display = 'inline-block'; // Show the upload button
+        }
+    
+        // Uncheck the checkboxes after retaking
+        document.getElementById('checkbox1').checked = false;
+        document.getElementById('checkbox2').checked = false;
+        document.getElementById('checkbox3').checked = false;
+        document.getElementById('checkbox4').checked = false;
+    }*/
+
+    function retakePictures() {
+    for (let i = 1; i <= 4; i++) {
+        if (document.getElementById(`checkbox${i}`).checked) {
+            let fileInput = document.getElementById(`upload${i}`);
+            let imgElement = document.getElementById(`image${i}`);
+            let uploadButton = document.getElementById(`uploadButton${i}`);
+
+            fileInput.value = ""; // Reset file input
+            imgElement.src = ""; // Clear image
+            imgElement.style.display = "none"; // Hide image
+            uploadButton.style.display = "inline-block"; // Show upload button
+
+            document.getElementById(`checkbox${i}`).checked = false; // Uncheck
+        }
+    }
+}
+document.getElementById("searchButton").addEventListener("click", function () {
+    const userId = document.getElementById("user_id").value;
+    const date = document.getElementById("dateInput").value;
+
+    if (!userId || !date) {
+        alert("Please select both user and date.");
+        return;
+    }
+
+    fetchAssessmentDetails(userId, date); // Call the function to fetch and display Table IDs
+});
+
+function fetchAssessmentDetails(userId, date) {
+    fetch(`/search_by_date?user_id=${encodeURIComponent(userId)}&date=${encodeURIComponent(date)}`)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { 
+                    throw new Error(err.error || "Failed to fetch data"); 
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.data && data.data.length > 0) {
+                displayTableIds(data.data); // Pass the full data array
+            } else {
+                document.getElementById("tableContainer").innerHTML = "<p>No Table IDs found .</p>";
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching data:", error);
+            if (!error.message.includes("No records found")) { 
+                alert(error.message);  // Show alert only for actual errors
+            }
+        });
+}
+
+
+function displayTableIds(tableData) {
+    const container = document.getElementById("tableContainer");
+    container.innerHTML = ""; // Clear previous content
+
+    tableData.forEach(item => {
+        const tableId = item["Table ID"] ? item["Table ID"].trim() : "Unknown ID"; 
+        let status = item["Assessment Status"] ? item["Assessment Status"].trim() : "None"; // Handle null values
+
+        if (tableId) { 
+            const div = document.createElement("div");
+            div.classList.add("table-item");
+            div.style.display = "flex";
+            div.style.alignItems = "center"; 
+            div.style.gap = "10px"; // Adds spacing between elements
+
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "tableSelection";  
+            radio.value = tableId;
+            radio.id = `table_${tableId}`;
+
+            const label = document.createElement("label");
+            label.htmlFor = `table_${tableId}`;
+            label.textContent = tableId;
+
+            const statusSpan = document.createElement("span");
+            statusSpan.style.marginLeft = "10px"; 
+            statusSpan.style.display = "inline-flex"; 
+            statusSpan.style.alignItems = "center";  
+            statusSpan.style.lineHeight = "normal"; // Ensures tick stays aligned
+
+            console.log(`Table ID: ${tableId}, Status: "${status}"`);
+
+            status = status.toLowerCase(); // Convert to lowercase for consistency
+
+            let tickColor = "black"; // Default color
+            if (status === "in progres" || status === "incomplete") {
+                tickColor = "red";  
+            } else if (status === "completed") {
+                tickColor = "orange"; 
+            } else if (status === "under review") {
+                tickColor = "blue"; 
+            } else if (status === "final") {
+                tickColor = "green"; 
+            }
+
+            // Proper tick alignment with color + Status text
+            statusSpan.innerHTML = `<span style="color: ${tickColor}; font-size: 20px; width:30px; vertical-align: middle;">✔</span> <span style="margin-left: 5px; font-weight: bold;">${status}</span>`;
+
+            div.appendChild(radio);
+            div.appendChild(label);
+            div.appendChild(statusSpan);
+            
+            container.appendChild(div);
+        }
+    });
+}
+
+
+    function setDropdownValue(dropdownId, value) {
+        const dropdown = document.getElementById(dropdownId);
+        const options = dropdown.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === value) {
+                options[i].selected = true;
+                return;
+            }
+        }
+        alert(`Value "${value}" not found in the dropdown for ${dropdownId}.`);
+    }
+    
+    function resetDropdown(dropdownId) {
+        const dropdown = document.getElementById(dropdownId);
+        dropdown.selectedIndex = 0; // Reset to the first option
+    }
+    
+    // Fetch user IDs and populate dropdown
+    fetch("/get_user_ids")
+        .then((response) => response.json())
+        .then((data) => {
+            console.log(data);  // Log the data to check its structure
+    
+            if (data.success) {
+                const userSelect = document.getElementById("user_id");
+    
+                // Clear existing options
+                userSelect.innerHTML = '';
+    
+                // Add a default "Select User" placeholder
+                const defaultOption = document.createElement("option");
+                defaultOption.value = '';  // No value for the placeholder
+                defaultOption.textContent = 'Select User';  // Placeholder text
+                defaultOption.disabled = true;  // Disable the placeholder
+                defaultOption.selected = true;  // Make it selected by default
+                userSelect.appendChild(defaultOption);
+    
+                // Check if users exist in the response
+                if (Array.isArray(data.users) && data.users.length > 0) {
+                    data.users.forEach((user) => {
+                        // Create options for "user_id"
+                        const userOption = document.createElement("option");
+                        userOption.value = user.id;  // Use User ID as the value
+                        userOption.textContent = user.username;  // Display Username
+                        userSelect.appendChild(userOption);
+                    });
+                } else {
+                    console.error("No users found in the data.");
+                }
+            } else {
+                alert("Failed to load users: " + data.message);
+            }
+        })
+
+        
+        .catch((error) => console.error("Error fetching users:", error));
+
+    
+    document.getElementById("submitButton").addEventListener("click", function() {
+     
+    const userId = document.getElementById("user_id").value;
+    const taskDate = document.getElementById("dateInput").value;
+    const assessmentStatus = document.getElementById("assessment_status").value;
+    const assessmentCase = document.getElementById("assessment_case").value;
+    
+    // Get selected table ID (radio button)
+    const selectedTable = document.querySelector('input[name="tableSelection"]:checked');
+    if (!selectedTable) {
+        alert("Please select a table ID.");
+        return;
+    }
+    const tableId = selectedTable.value;
+
+    // Get uploaded images
+    const imageFiles = [
+        document.getElementById("upload1").files[0],
+        document.getElementById("upload2").files[0],
+        document.getElementById("upload3").files[0],
+        document.getElementById("upload4").files[0]
+    ];
+
+    // Ensure at least one image is uploaded
+    const formData = new FormData();
+    formData.append("user_id", userId);
+    formData.append("task_date", taskDate);
+    formData.append("table_id", tableId);
+    formData.append("assessment_status", assessmentStatus);
+    formData.append("assessment_case", assessmentCase);
+
+    const allImagesUploaded = imageFiles.every(file => file !== undefined);
+    if (!allImagesUploaded) {
+        alert("Please upload all 4 pictures before submitting.");
+        return;
+    }
+
+    // Append images to FormData
+    imageFiles.forEach((file, index) => {
+        if (file) {
+            formData.append(`image${index + 1}`, file);
+        }
+    });
+
+    // Send data to the backend
+    fetch("/update_assessment", {
+    method: "POST",
+    body: formData
+})
+.then(response => response.json())
+.then(data => {
+    var popupMessage = document.getElementById('popupMessage');
+
+    
+    popupMessage.textContent = data.message || "Error updating the assessment. Please try again.";
+
+    if (data.success) {
+        
+        popupMessage.classList.remove("failure");
+        popupMessage.classList.add("success");
+
+     
+        clearForm();
+
+    } else {
+        
+        popupMessage.classList.remove("success");
+        popupMessage.classList.add("failure");
+    }
+
+   
+    popupMessage.style.display = "block";
+
+   
+    setTimeout(function() {
+        popupMessage.style.display = "none";
+    }, 3000);
+})
+.catch(error => {
+    var popupMessage = document.getElementById('popupMessage');
+    popupMessage.classList.remove("success");
+    popupMessage.classList.add("failure");
+    popupMessage.textContent = "There was an error updating the assessment. Please try again.";
+    popupMessage.style.display = "block";
+
+   
+    setTimeout(function() {
+        popupMessage.style.display = "none";
+    }, 3000);
+   
+});
+
+
+function clearForm() {
+    // Clear only the images and checkboxes
+    function clearImagePreview(inputId, imgId) {
+        let fileInput = document.getElementById(inputId);
+        let imgElement = document.getElementById(imgId);
+
+        fileInput.value = ""; 
+        imgElement.src = "";  
+        imgElement.style.display = "none";
+    }
+
+    clearImagePreview("upload1", "image1");
+    clearImagePreview("upload2", "image2");
+    clearImagePreview("upload3", "image3");
+    clearImagePreview("upload4", "image4");
+
+    // Uncheck checkboxes
+    document.getElementById("checkbox1").checked = false;
+    document.getElementById("checkbox2").checked = false;
+    document.getElementById("checkbox3").checked = false;
+    document.getElementById("checkbox4").checked = false;
+
+    
+    let selectedTable = document.querySelector(".table-container input[type='radio']:checked");
+
+    if (selectedTable) {
+        let label = document.querySelector(`label[for="${selectedTable.id}"]`);
+        if (label) {
+            label.style.color = "green"; // Change text color
+        }
+
+        selectedTable.checked = false; // Uncheck radio button
+
+        // Extract user ID & date from input fields
+        let userId = document.getElementById("user_id").value;
+        let date = document.getElementById("dateInput").value;
+
+        if (userId && date) {
+            fetchAssessmentDetails(userId, date); // 🔄 Refresh data after update
+        }
+    
+}
+
+}
+
+});
+
+    </script>
+
+
+remedy 
+
+@app.route('/search_by_remedydate', methods=['GET'])
+def search_by_remedydate():
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    
+    user_id = request.args.get('user_id')
+    task_date = request.args.get('date')
+
+    if not user_id or not task_date:
+        return jsonify({"error": "User ID and Date parameters are required"}), 400
+
+    try:
+        # Fetch all Table IDs where User ID and Task Date match
+        cursor.execute("""
+            SELECT distinct `Table ID`
+            FROM remedy
+            WHERE `User ID` = %s AND `Task Date` = %s
+        """, (user_id, task_date))
+
+        result = cursor.fetchall()
+
+        # Extract table IDs as a list
+        table_ids = [row["Table ID"] for row in result]
+
+        if table_ids:
+            return jsonify({"table_ids": table_ids})  # Return as an array
+        else:
+            return jsonify({"error": "No Table IDs found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
